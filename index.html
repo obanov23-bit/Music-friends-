@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MuzMatch</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1a1a1a; color: #e0e0e0; text-align: center; padding: 20px; margin: 0; }
+        .card { background: #262626; border-radius: 16px; padding: 24px; max-width: 360px; margin: 40px auto; box-shadow: 0 8px 24px rgba(0,0,0,0.3); border: 1px solid #333; box-sizing: border-box; }
+        h1 { color: #ffffff; font-size: 24px; margin-bottom: 4px; }
+        h3 { color: #b3b3b3; font-weight: normal; margin-top: 0; margin-bottom: 20px; font-size: 16px; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #3a3a3a; background: #333333; color: #ffffff; box-sizing: border-box; font-size: 14px; }
+        input:focus, select:focus, textarea:focus { border-color: #555; outline: none; }
+        textarea { height: 80px; resize: none; }
+        button { width: 100%; padding: 14px; margin-top: 12px; border-radius: 8px; border: none; font-size: 16px; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #4a4a4a; color: #ffffff; }
+        .btn-primary:hover { background: #555555; }
+        .btn-skip { background: #3a3a3a; color: #e0e0e0; width: 48%; float: left; margin-top: 20px; }
+        .btn-skip:hover { background: #444444; }
+        .btn-like { background: #5a5a5a; color: #ffffff; width: 48%; float: right; margin-top: 20px; }
+        .btn-like:hover { background: #656565; }
+        .hidden { display: none; }
+        .clearfix::after { content: ""; clear: both; display: table; }
+        .meta-info { color: #888888; font-size: 14px; margin: 4px 0 16px 0; }
+        .level-tag { display: inline-block; background: #333; padding: 4px 12px; border-radius: 12px; font-size: 13px; color: #aaaaaa; margin-bottom: 16px; border: 1px solid #444; }
+        .about-text { font-size: 15px; line-height: 1.5; color: #cccccc; background: #1f1f1f; padding: 16px; border-radius: 10px; text-align: left; border-left: 3px solid #5a5a5a; }
+        .match-title { color: #ffffff; font-size: 22px; margin-bottom: 12px; }
+        .match-box { background: #1f1f1f; padding: 12px; border-radius: 8px; margin: 16px 0; color: #aaaaaa; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+    <div id="screen-register" class="card">
+        <h1>MuzMatch</h1>
+        <h3>Поиск музыкантов в городе</h3>
+        <input type="text" id="reg-name" placeholder="Имя или никнейм">
+        <input type="number" id="reg-age" placeholder="Возраст">
+        <select id="reg-instrument">
+            <option value="" disabled selected>Выберите инструмент</option>
+            <option value="Гитара">Гитара</option>
+            <option value="Бас-гитара">Бас-гитара</option>
+            <option value="Барабаны">Барабаны</option>
+            <option value="Вокал">Вокал</option>
+            <option value="Клавишные">Клавишные</option>
+        </select>
+        <select id="reg-level">
+            <option value="" disabled selected>Ваш уровень игры</option>
+            <option value="Новичок (хочу учиться)">Новичок (хочу учиться)</option>
+            <option value="Средний (ищу группу)">Средний (ищу группу)</option>
+            <option value="Профи">Профи</option>
+        </select>
+        <textarea id="reg-about" placeholder="Любимые группы, исполнители, кого ищете и на кого ориентируетесь..."></textarea>
+        <button class="btn-primary" onclick="startDating()">Войти и начать поиск</button>
+    </div>
+
+    <div id="screen-dating" class="card hidden">
+        <h2 id="view-name">Имя</h2>
+        <div id="view-meta" class="meta-info">Возраст • Инструмент</div>
+        <div id="view-level" class="level-tag">Уровень</div>
+        <div id="view-about" class="about-text">О себе</div>
+        
+        <div class="clearfix">
+            <button class="btn-skip" onclick="nextCard()">Пропустить</button>
+            <button class="btn-like" onclick="likeCard()">Лайк</button>
+        </div>
+    </div>
+
+    <div id="screen-match" class="card hidden">
+        <div class="match-title">🔥 У вас совпадение!</div>
+        <p style="font-size: 15px; color: #bbbbbb;">Вы понравились друг другу и можете собрать группу.</p>
+        <div id="match-message" class="match-box"></div>
+        <button class="btn-primary" onclick="backToDating()">Смотреть анкеты дальше</button>
+    </div>
+
+    <script>
+        const mockMusicians = [
+            { name: "Никита", age: 18, instrument: "Бас-гитара", level: "Новичок (хочу учиться)", about: "Купил бас пару недель назад, хочу рубить панк-рок или альтернативу. Ищу ребят из Вологды, которые подтянут по инструменту и не против вместе развиваться." },
+            { name: "Макс", age: 19, instrument: "Барабаны", level: "Средний (ищу группу)", about: "Ориентируюсь на Кино, Пошлую Молли, старый рок. Есть свой кардан, опыт игры год. Готов собираться по выходным на репитиции." },
+            { name: "Алёна", age: 17, instrument: "Вокал", level: "Профи", about: "Учусь на музыкальном, пою в разных стилях, но хочу собрать банду играть инди-рок или поп-рок. Есть свои тексты и наработки демок." },
+            { name: "Сергей", age: 20, instrument: "Гитара", level: "Средний (ищу группу)", about: "Играю соло и ритм. Ищу единомышленников для создания кавер-группы или своего материала. Жанры: гранж, рок, метал." }
+        ];
+
+        let currentIndex = 0;
+
+        function startDating() {
+            const name = document.getElementById('reg-name').value;
+            const age = document.getElementById('reg-age').value;
+            const inst = document.getElementById('reg-instrument').value;
+            const lvl = document.getElementById('reg-level').value;
+
+            if(!name || !age || !inst || !lvl) {
+                return alert("Пожалуйста, заполните все поля анкеты!");
+            }
+            
+            document.getElementById('screen-register').classList.add('hidden');
+            document.getElementById('screen-dating').classList.remove('hidden');
+            showCard();
+        }
+
+        function showCard() {
+            if (currentIndex >= mockMusicians.length) {
+                alert("Анкеты в вашем городе временно закончились. Попробуем сначала!");
+                currentIndex = 0;
+            }
+            const user = mockMusicians[currentIndex];
+            document.getElementById('view-name').innerText = user.name;
+            document.getElementById('view-meta').innerText = `${user.age} лет • ${user.instrument}`;
+            document.getElementById('view-level').innerText = user.level;
+            document.getElementById('view-about').innerText = user.about;
+        }
+
+        function nextCard() {
+            currentIndex++;
+            showCard();
+        }
+
+        function likeCard() {
+            const currentMusician = mockMusicians[currentIndex];
+            document.getElementById('screen-dating').classList.add('hidden');
+            document.getElementById('screen-match').classList.remove('hidden');
+            document.getElementById('match-message').innerHTML = `Пользователь <b>${currentMusician.name}</b> добавил вас в друзья! Зайдите на страницу, чтобы посмотреть демки или написать в TG.`;
+        }
+
+        function backToDating() {
+            document.getElementById('screen-match').classList.add('hidden');
+            document.getElementById('screen-dating').classList.remove('hidden');
+            nextCard();
+        }
+    </script>
+</body>
+  </html>
+  
